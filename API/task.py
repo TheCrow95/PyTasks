@@ -22,13 +22,29 @@ def add_task(name):
         return False
 
     tasks[name] = False
+    _write_tasks_to_disk(tasks=tasks)
+    return True
+
+
+def remove_task(name):
+    tasks = get_tasks()
+    if name not in tasks:
+        logging.error("La tâche n'existe pas dans le dictionnaire.")
+        return False
+
+    del tasks[name]
+    _write_tasks_to_disk(tasks=tasks)
+    return True
+
+
+def _write_tasks_to_disk(tasks):
     if not os.path.exists(TASKS_DIR):
         os.makedirs(TASKS_DIR)
     with open(TASKS_FILEPATH, "w") as f:
         json.dump(tasks, f, indent=4)
-        logging.info("La tâche a été ajouté.")
-    return True
+        logging.info("Les tâches ont bien été mises à jour.")
 
 
 if __name__ == '__main__':
-    t = get_tasks()
+    t = remove_task("Apprendre le python")
+    print(t)
