@@ -1,4 +1,21 @@
-from PySide6.QtWidgets import QApplication, QWidget, QListWidget, QPushButton, QVBoxLayout, QHBoxLayout
+from PySide6.QtCore import QSize
+from PySide6.QtWidgets import QApplication, QWidget, QListWidget, QPushButton, QVBoxLayout, QHBoxLayout, QInputDialog, \
+    QListWidgetItem
+
+import API.task
+
+
+class TaskItem(QListWidgetItem):
+    def __init__(self, name, done, list_widget):
+        super().__init__(name)
+
+        self.list_widget = list_widget
+        self.done = done
+        self.name = name
+
+        self.setSizeHint(QSize(1, 50))
+
+        self.list_widget.addItem(self)
 
 
 class MainWindow(QWidget):
@@ -6,6 +23,7 @@ class MainWindow(QWidget):
         super().__init__()
         self.setWindowTitle("My Windows")
         self.setup_ui()
+        self.get_tasks()
 
     def setup_ui(self):
         self.create_widgets()
@@ -37,7 +55,21 @@ class MainWindow(QWidget):
         self.layout_buttons.addWidget(self.btn_quit)
 
     def setup_connections(self):
-        pass
+        self.btn_add.clicked.connect(self.add_task)
+
+    def add_task(self):
+        task_name, ok = QInputDialog.getText(self,
+                                             "Ajouter une tâche",
+                                             "Nom de la tâche: ")
+        if ok and task_name:
+            API.task.add_task(name=task_name)
+            self.get_tasks()
+
+    def get_tasks(self):
+        self.lw_tasks.clear()
+        tasks = API.task.get_tasks()
+        for task_name, done in tasks.items():
+            TaskItem(name=task_name, done=done, list_widget=self.lw_tasks)
 
 
 if __name__ == '__main__':
