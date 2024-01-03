@@ -1,8 +1,11 @@
 from PySide6.QtCore import QSize
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QApplication, QWidget, QListWidget, QPushButton, QVBoxLayout, QHBoxLayout, QInputDialog, \
     QListWidgetItem
 
 import API.task
+
+COLORS = {False: (235, 64, 52), True: (160, 237, 83)}
 
 
 class TaskItem(QListWidgetItem):
@@ -14,8 +17,20 @@ class TaskItem(QListWidgetItem):
         self.name = name
 
         self.setSizeHint(QSize(1, 50))
-
         self.list_widget.addItem(self)
+        self.set_background_color()
+
+    def toggle_state(self):
+        self.done = not self.done
+        API.task.set_tasks_status(name=self.name, done=self.done)
+        self.set_background_color()
+
+    def set_background_color(self):
+        color = COLORS.get(self.done)
+        self.setBackground(QColor(*color))
+        stylesheet = f"""QListView::item:selected {{background: rgb{color};
+                                                    color: rgb(0, 0, 0);}}"""
+        self.list_widget.setStyleSheet(stylesheet)
 
 
 class MainWindow(QWidget):
@@ -56,6 +71,7 @@ class MainWindow(QWidget):
 
     def setup_connections(self):
         self.btn_add.clicked.connect(self.add_task)
+        self.lw_tasks.itemClicked.connect(lambda lw_item: lw_item.toggle_state())
 
     def add_task(self):
         task_name, ok = QInputDialog.getText(self,
